@@ -1,0 +1,25 @@
+{
+  "name": "bitbucket-srv-rest",
+  "version": "1.0.0",
+  "description": "Bitbucket Server REST API Library",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ukuhnhardt/bitbucket-rest.git"
+  },
+  "author": "Ulrich Kuhnhardt",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ukuhnhardt/bitbucket-srv-rest/issues"
+  },
+  "homepage": "https://github.com/ukuhnhardt/bitbucket-srv-rest#readme",
+  "dependencies": {
+    "exec": "^0.2.1",
+    "request": "^2.74.0",
+    "rsvp": "^3.2.1",
+    "underscore": "^1.8.3"
+  }
+}
