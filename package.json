@@ -1,6 +1,6 @@
 {
   "name": "bitbucket-srv-rest",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Bitbucket Server REST API Library",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ukuhnhardt/bitbucket-rest.git"
+    "url": "git+https://github.com/ukuhnhardt/bitbucket-srv-rest.git"
   },
   "author": "Ulrich Kuhnhardt",
   "license": "ISC",
