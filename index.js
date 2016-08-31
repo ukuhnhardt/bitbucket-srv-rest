@@ -242,6 +242,24 @@ BitbucketRest.prototype.createPR = function (projKey, fromRepo, fromRef, toRepo,
         });
     };
 
+BitbucketRest.prototype.commentPullRequest = function (projKey, repoSlug, id, text, userName, userPassword) {
+  var self = this;
+  userName = userName || 'admin'
+  userPassword = userPassword || 'admin'
+  return new RSVP.Promise(function (resolve, reject) {
+    console.log("comment PR", id, userName, userPassword)
+    request.post(self.baseUrl+'/rest/api/1.0/projects/'+projKey+'/repos/'+repoSlug+'/pull-requests/'+id+'/comments',function (err, res, data) {
+        if (!err && ! data.errors) {
+            console.log("PR commented", data.id);
+            resolve(data);
+            return;
+        }
+        console.error(err, JSON.stringify(data));
+        reject();
+    }).json({text: text}).auth(userName, userPassword, true);
+  })
+}
+
 BitbucketRest.prototype.updatePullRequest = function (id, version, projKey, fromRepo, reviewers, toRef) {
     var self = this;
         return new RSVP.Promise(function (resolve, reject) {
