@@ -152,8 +152,21 @@ BitbucketRest.prototype.addUserGroups = function (user, groups) {
 BitbucketRest.prototype.createGroup = function (name){
     var self = this;
     return new RSVP.Promise( function(resolve, reject){
-        request.post(self.baseUrl + '/rest/api/1.0/admin/groups?' +
-            'name=' + name, function (err, res, data){
+        request.post(self.baseUrl + '/rest/api/1.0/admin/groups?name=' + name, function (err, res, data){
+            if (!err) {
+                resolve(); // done
+            } else {
+                console.log(err);
+                reject();
+            }
+        }).json({}).auth("admin", "admin", true);
+    });
+};
+
+BitbucketRest.prototype.deleteGroup = function (name){
+    var self = this;
+    return new RSVP.Promise( function(resolve, reject){
+        request.del(self.baseUrl + '/rest/api/1.0/admin/groups?name=' + name, function (err, res, data){
             if (!err) {
                 resolve(); // done
             } else {
@@ -260,16 +273,16 @@ BitbucketRest.prototype.commentPullRequest = function (projKey, repoSlug, id, te
   })
 }
 
-BitbucketRest.prototype.updatePullRequest = function (id, version, projKey, fromRepo, reviewers, toRef) {
+BitbucketRest.prototype.updatePullRequest = function (id, version, projKey, fromRepo, reviewers, toRef, otherOpts) {
     var self = this;
         return new RSVP.Promise(function (resolve, reject) {
             var users = _.map(reviewers, function(name){
                                 return {user:{name:name}};
                             });
-            console.log("updating PR", id, "version", version, "users", users );
+            console.log("updating PR", id, "version", version, "users", users, "options", otherOpts );
             var data = {
-                "title": "Test PR",
-                "description": "test description",
+                "title": otherOpts && otherOpts.title || "Test PR",
+                "description": otherOpts && otherOpts.description || "test description",
                 "reviewers": users,
                 "version": version
             };
@@ -277,6 +290,7 @@ BitbucketRest.prototype.updatePullRequest = function (id, version, projKey, from
                 data = _.extend(data, {toRef : toRef});
             }
             request.put(self.baseUrl+'/rest/api/1.0/projects/'+projKey+'/repos/'+fromRepo+'/pull-requests/'+id,function (err, res, data) {
+                console.log("PR updated", data.id);
                 if (!err && ! data.errors) {
                     console.log("PR updated", data.id);
                     resolve(data);
