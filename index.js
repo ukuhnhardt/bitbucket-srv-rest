@@ -214,6 +214,21 @@ BitbucketRest.prototype.approvePullRequest = function(projKey, repo, prId, userN
     });
 };
 
+BitbucketRest.prototype.needsWorkPullRequest = function (projKey, repo, prId, userName) {
+    var self = this
+    return new RSVP.Promise( function (resolve, reject) {
+        request.put(self.baseUrl+'/rest/api/latest/projects/'+projKey+'/repos/'+repo+'/pull-requests/'+prId+'/participants/'+userName, function(err, resp, data) {
+            if (!err) {
+                resolve();
+                return;
+            }
+            console.log('needs work update error', err)
+            reject()
+        }).json({"status": "NEEDS_WORK"}).auth(userName, userName, true)
+    })
+}
+
+
 BitbucketRest.prototype.createPR = function (projKey, fromRepo, fromRef, toRepo, toRef, fromProjKeyOpt, asUserOpt) {
     asUserOpt = asUserOpt || "admin";
     var fromProjKey = fromProjKeyOpt || projKey;
