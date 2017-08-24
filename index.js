@@ -228,6 +228,48 @@ BitbucketRest.prototype.needsWorkPullRequest = function (projKey, repo, prId, us
     })
 }
 
+BitbucketRest.prototype.pullRequestSettings = function (projKey, repo, settings) {
+    var self = this
+    return new RSVP.Promise( function(resolve, reject) {
+        request.post(self.baseUrl+'/rest/api/latest/projects/'+projKey+'/repos/'+repo+'/settings/pull-requests', function(err, resp, data) {
+            if(!err){
+                resolve(data)
+                return;
+            }
+            console.error('pull-requests/settings ', err)
+            reject()
+        }).json(settings).auth('admin', 'admin', true)
+    } )
+}
+
+BitbucketRest.prototype.getPullRequestSettings = function (projKey, repo) {
+    var self = this
+    return new RSVP.Promise( function(resolve, reject) {
+        request.get(self.baseUrl+'/rest/api/latest/projects/'+projKey+'/repos/'+repo+'/settings/pull-requests', function(err, resp, data) {
+            if(!err){
+                resolve(data)
+                return;
+            }
+            console.error('pull-requests/settings ', err)
+            reject()
+        }).json(settings).auth('admin', 'admin', true)
+    } )
+}
+
+BitbucketRest.prototype.getCommits = function (projKey, repo) {
+    var self = this
+    return new RSVP.Promise( function(resolve, reject) {
+        request.get(self.baseUrl+'/rest/api/latest/projects/'+projKey+'/repos/'+repo+'/commits', function(err, resp, data) {
+            if(!err) {
+                //console.log('commites raw', data)
+                resolve(JSON.parse(data))
+                return
+            }
+            console.error('repo commits', err)
+            reject()
+          }).auth('admin', 'admin', true)
+    } )
+}
 
 BitbucketRest.prototype.createPR = function (projKey, fromRepo, fromRef, toRepo, toRef, fromProjKeyOpt, asUserOpt) {
     asUserOpt = asUserOpt || "admin";
@@ -369,16 +411,17 @@ BitbucketRest.prototype.getBranches = function(prjKey, repoSlug){
         }).auth("admin", "admin", true);
     });
 };
-
-BitbucketRest.prototype.sendBuildResult = function (latestFromChangeset, key) {
+ // result = SUCCESSFUL or FAILED or INPROGRESS
+BitbucketRest.prototype.sendBuildResult = function (latestFromChangeset, key, result) {
     key = key || "REPO-MASTER-" + new Date().getTime();
+    result = result || "SUCCESSFUL"
     var self = this;
     return new RSVP.Promise(function (resolve, reject) {
         request.post(self.baseUrl + "/rest/build-status/1.0/commits/" + latestFromChangeset,function (err, res, data) {
-            console.log("build result sent");
+            console.log("build result sent", result);
             resolve();
         }).json({
-                "state": "SUCCESSFUL",
+                "state": result,
                 // this is just bla bla
                 "key": key,
                 "name": key+"-42",
