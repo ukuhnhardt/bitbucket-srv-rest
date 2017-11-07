@@ -148,21 +148,21 @@ BitbucketRest.prototype.addUserGroups = function (user, groups) {
     });
 };
 
-BitbucketRest.prototype.createGroup = function (name){
-    var self = this;
-    return new RSVP.Promise( function(resolve, reject){
-        request.post(self.baseUrl + '/rest/api/1.0/admin/groups?name=' + name, function (err, res, data){
+BitbucketRest.prototype.createGroup = function (name) {
+    var self = this
+    return new RSVP.Promise( function(resolve, reject) {
+        request.post(self.baseUrl + '/rest/api/1.0/admin/groups?name=' + name, function (err, res, data) {
             if (!err) {
-                resolve(); // done
+                resolve() // done
             } else {
-                console.log(err);
-                reject();
+                console.log(err)
+                reject()
             }
-        }).json({}).auth("admin", "admin", true);
+        }).json({ }).auth("admin", "admin", true)
     });
 };
 
-BitbucketRest.prototype.deleteGroup = function (name){
+BitbucketRest.prototype.deleteGroup = function (name) {
     var self = this;
     return new RSVP.Promise( function(resolve, reject){
         request.del(self.baseUrl + '/rest/api/1.0/admin/groups?name=' + name, function (err, res, data){
@@ -388,6 +388,47 @@ BitbucketRest.prototype.sendBuildResult = function (latestFromChangeset, key, re
     });
 };
 
+BitbucketRest.prototype.pullRequestSettings = function (projKey, repo, settings) {
+    var self = this
+    return new RSVP.Promise( function(resolve, reject) {
+        request.post(self.baseUrl+'/rest/api/latest/projects/'+projKey+'/repos/'+repo+'/settings/pull-requests', function(err, resp, data) {
+            if(!err){
+                resolve(data)
+                return;
+            }
+            console.error('pull-requests/settings ', err)
+            reject()
+        }).json(settings).auth('admin', 'admin', true)
+    } )
+}
 
+BitbucketRest.prototype.getPullRequestSettings = function (projKey, repo) {
+    var self = this
+    return new RSVP.Promise( function(resolve, reject) {
+        request.get(self.baseUrl+'/rest/api/latest/projects/'+projKey+'/repos/'+repo+'/settings/pull-requests', function(err, resp, data) {
+            if(!err){
+                resolve(data)
+                return;
+            }
+            console.error('pull-requests/settings ', err)
+            reject()
+        }).json(settings).auth('admin', 'admin', true)
+    } )
+}
+
+BitbucketRest.prototype.getCommits = function (projKey, repo) {
+    var self = this
+    return new RSVP.Promise( function(resolve, reject) {
+        request.get(self.baseUrl+'/rest/api/latest/projects/'+projKey+'/repos/'+repo+'/commits', function(err, resp, data) {
+            if(!err) {
+                //console.log('commites raw', data)
+                resolve(JSON.parse(data))
+                return
+            }
+            console.error('repo commits', err)
+            reject()
+          }).auth('admin', 'admin', true)
+    })
+}
 
 module.exports = BitbucketRest;
