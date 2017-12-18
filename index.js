@@ -1,6 +1,7 @@
 var RSVP = require('rsvp');
 var request = require('request');
 var exec = require('exec');
+var Q = require('q');
 var _ = require('underscore');
 
 var BitbucketRest = function (opts) {
@@ -54,12 +55,13 @@ BitbucketRest.prototype.createRepository = function (projectKey, repoName) {
 BitbucketRest.prototype.fork = function (projectKey, repoName, forkName,  user) {
     var self = this;
     var user = user || {name : 'admin', password : 'admin'};
-    return new RSVP.Promise(function (resolve, reject) {
+    var deferred = Q.defer()
+    console.log('forking', repoName, 'to', forkName)
         request.post(self.baseUrl + '/rest/api/1.0/projects/' + projectKey + '/repos/' + repoName,function (err, res, data) {
-            if (! err) resolve();
-            reject();
+            if (! err) deferred.resolve(data);
+            else deferred.reject(new Error(err));
         }).json({"name":forkName, "slug": forkName, "project":{"key":projectKey}}).auth(user.name, user.password, true);
-    });
+    return deferred.promise;
 };
 
 BitbucketRest.prototype.createPrivateFork = function (projectKey, repoName, forkName,  user) {
@@ -228,45 +230,47 @@ BitbucketRest.prototype.needsWorkPullRequest = function (projKey, repo, prId, us
 }
 
 
+// this is done with Q promise
 BitbucketRest.prototype.createPR = function (projKey, fromRepo, fromRef, toRepo, toRef, fromProjKeyOpt, asUserOpt) {
     asUserOpt = asUserOpt || "admin";
     var fromProjKey = fromProjKeyOpt || projKey;
     var self = this;
-        return new RSVP.Promise(function (resolve, reject) {
-            request.post(self.baseUrl+'/rest/api/1.0/projects/'+projKey+'/repos/'+toRepo+'/pull-requests',function (err, res, data) {
-                console.log("PR created: ", data.id);
-                if (!err) resolve(data);
-                else reject();
-            }).json({
-                "title": "Test PR",
-                "description": "test description",
-                "state": "OPEN",
-                "open": true,
-                "closed": false,
-                "fromRef": {
-                    "id": fromRef,
-                    "repository": {
-                        "slug": fromRepo,
-                        "name": null,
-                        "project": {
-                            "key": fromProjKey
-                        }
-                    }
-                },
-                "toRef": {
-                    "id": toRef,
-                    "repository": {
-                        "slug": toRepo,
-                        "name": null,
-                        "project": {
-                            "key": projKey
-                        }
-                    }
-                },
-                "reviewers": [ ]
-            }).auth(asUserOpt, asUserOpt, true);
+    var deferred = Q.defer();
+    request.post(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/repos/' + toRepo + '/pull-requests', function (err, res, data) {
+        console.log("PR created: ", data.id);
+        if (!err) deferred.resolve(data);
+        else deferred.reject(new Error(err));
+    }).json({
+        "title": "Test PR",
+        "description": "test description",
+        "state": "OPEN",
+        "open": true,
+        "closed": false,
+        "fromRef": {
+            "id": fromRef,
+            "repository": {
+                "slug": fromRepo,
+                "name": null,
+                "project": {
+                    "key": fromProjKey
+                }
+            }
+        },
+        "toRef": {
+            "id": toRef,
+            "repository": {
+                "slug": toRepo,
+                "name": null,
+                "project": {
+                    "key": projKey
+                }
+            }
+        },
+        "reviewers": []
+    }).auth(asUserOpt, asUserOpt, true);
 
-        });
+
+    return deferred.promise
     };
 
 BitbucketRest.prototype.commentPullRequest = function (projKey, repoSlug, id, text, userName, userPassword) {
