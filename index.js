@@ -102,7 +102,18 @@ BitbucketRest.prototype.setRepositoryGroupPermissions = function (projKey, repoN
     var self = this;
     return new RSVP.Promise(function (resolve, reject) {
         request.put(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/repos/' + repoName + '/permissions/groups?permission=REPO_WRITE&name=' + group,function (err, res, data) {
-            console.log("set write permissions for", projKey, repoName, group);
+            console.log("set repo write permissions for", projKey, repoName, group);
+            if (!err) resolve();
+            else reject();
+        }).auth('admin', 'admin', true);
+    });
+};
+
+BitbucketRest.prototype.setProjectGroupPermissions = function (projKey, group) {
+    var self = this;
+    return new RSVP.Promise(function(resolve, reject) {
+        request.put(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/permissions/groups?permission=PROJECT_WRITE&name=' + group, function (err, res, data) {
+            console.log("set project write permissions for", projKey, group);
             if (!err) resolve();
             else reject();
         }).auth('admin', 'admin', true);
