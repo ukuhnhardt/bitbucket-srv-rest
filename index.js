@@ -427,7 +427,7 @@ BitbucketRest.prototype.getPullRequestSettings = function (projKey, repo) {
             }
             console.error('pull-requests/settings ', err)
             reject()
-        }).json(settings).auth('admin', 'admin', true)
+        }).auth('admin', 'admin', true)
     } )
 }
 
@@ -446,4 +446,59 @@ BitbucketRest.prototype.getCommits = function (projKey, repo) {
     })
 }
 
-module.exports = BitbucketRest;
+BitbucketRest.prototype.addComment = function (projKey, repoSlug, prId, comment) {
+  var self = this
+  return new RSVP.Promise(function (resolve, reject) {
+      request.post(self.baseUrl+'/rest/api/latest/projects/'+projKey+'/repos/'+repoSlug+'/pull-requests/'+prId+'/comments', function (err, resp, data) {
+          //console.log('add comment resp', resp)
+          if(!err) {
+              // console.log('comment added', data)
+              resolve(data)
+              return
+          }
+          console.error('add comment', err)
+          reject()
+        }).json({"text": comment}).auth('admin', 'admin', true)
+    })
+}
+
+BitbucketRest.prototype.addTask = function(anchorId, taskText) {
+  var self = this
+  return new RSVP.Promise( function(resolve, reject) {
+      request.post(self.baseUrl+'/rest/api/latest/tasks', function(err, resp, data) {
+          if(!err) {
+              // console.log('added task', data)
+              resolve(data)
+              return
+          }
+          console.error('add task', err)
+          reject()
+        }).json({"anchor": {
+          "id": anchorId,
+          "type": "COMMENT"
+        },
+        "text": taskText})
+        .auth('admin', 'admin', true)
+    })
+}
+
+BitbucketRest.prototype.completeTask = function (taskId) {
+  var self = this
+  return new RSVP.Promise(function (resolve, reject) {
+      request.put(self.baseUrl + '/rest/api/latest/tasks/' + taskId, function (err, resp, data) {
+          if(!err) {
+              // console.log('complete task', data)
+              resolve(data)
+              return
+          }
+          console.error('complete task', err)
+          reject()
+        }).json({
+          "id": taskId,
+          "state": "RESOLVED"
+        })
+        .auth('admin', 'admin', true)
+    })
+}
+
+module.exports = BitbucketRest
