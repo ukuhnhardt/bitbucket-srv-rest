@@ -25,14 +25,30 @@ BitbucketRest.prototype.createProject = function (key, name) {
     });
 };
 
-BitbucketRest.prototype.createRepository = function (projectKey, repoName) {
+BitbucketRest.prototype.getRepos = function (projectKey) {
+    const self = this
+    return new RSVP.Promise((resolve, reject) => {
+        request.get(self.baseUrl + '/rest/api/1.0/projects/' + projectKey + '/repos?limit=1000', function (err, res, data) {
+            if (!err) {
+                resolve(JSON.parse(data))
+                return
+            } else {
+                reject()
+            }
+        }).auth('admin', 'admin', true)
+    })
+}
+
+BitbucketRest.prototype.createRepository = function (projectKey, repoName, repoZipPath) {
     var self = this;
+    repoZipPath = repoZipPath || 'src/test/repo.tgz'
+    repoPath = repoZipPath.substr(0, repoZipPath.lastIndexOf('.'))
     return new RSVP.Promise(function (resolve, reject) {
         request.post(self.baseUrl + '/rest/api/1.0/projects/' + projectKey + '/repos',function (err, res, data) {
-//            console.log("Created Repository", data);
-            exec("rm -Rf src/test/repo; " +
-                "tar -zxf src/test/repo.tgz src/test/repo; " +
-                "cd src/test/repo ; " +
+            console.log("Created Repository", data);
+            exec(`rm -Rf ${repoPath}; ` +
+                `tar -zxf ${repoZipPath} ${repoPath}; ` +
+                `cd ${repoPath} ; ` +
                 "git remote rm origin ; " +
                 "git remote add origin " + self.gitBaseUrl + "/scm/"+projectKey+"/"+repoName+".git ; " +
                 "git push origin --all", function (err, out, code) {
@@ -42,8 +58,6 @@ BitbucketRest.prototype.createRepository = function (projectKey, repoName) {
                 process.stdout.write(out);
                 resolve(); // done
             });
-
-
         }).json({
                 "name": repoName,
                 "scmId": "git",
@@ -150,8 +164,10 @@ BitbucketRest.prototype.createUser = function (user) {
 BitbucketRest.prototype.addUserGroups = function (user, groups) {
     var self = this;
     return new RSVP.Promise(function (resolve, reject) {
+        // console.log(`adding ${user} to ${groups}`)
         request.post(self.baseUrl + '/rest/api/1.0/admin/users/add-groups',function (err, res, data) {
             if (!err) {
+                // console.log(`added ${user} to ${groups}`)
                 resolve(); // done
             } else {
                 console.log(err);
@@ -211,22 +227,24 @@ BitbucketRest.prototype.deleteRepository = function (projKey, repo) {
         });
     };
 
-BitbucketRest.prototype.approvePullRequest = function(projKey, repo, prId, userName) {
+BitbucketRest.prototype.approvePullRequest = function(projKey, repo, prId, userName, pw) {
     var self = this;
+    pw = pw || userName
     return new RSVP.Promise(function(resolve, reject){
         request.post(self.baseUrl+'/rest/api/1.0/projects/'+projKey+'/repos/'+repo+'/pull-requests/'+prId+'/approve', function(err, res, data){
-            if (!err) {
+            if (!err && !data.errors) {
                 console.log("PR", prId, "approved by", userName);
                 resolve();
                 return;
             }
-            console.log("approve PR error", err);
+            console.log("approve PR error", err, data.errors);
             reject();
-        }).json({}).auth(userName, userName, true);
+        }).json({}).auth(userName, pw, true);
     });
 };
 
-BitbucketRest.prototype.needsWorkPullRequest = function (projKey, repo, prId, userName) {
+BitbucketRest.prototype.needsWorkPullRequest = function (projKey, repo, prId, userName, userPwd) {
+    userPwd = userPwd || userName
     var self = this
     return new RSVP.Promise( function (resolve, reject) {
         request.put(self.baseUrl+'/rest/api/latest/projects/'+projKey+'/repos/'+repo+'/pull-requests/'+prId+'/participants/'+userName, function(err, resp, data) {
@@ -236,14 +254,15 @@ BitbucketRest.prototype.needsWorkPullRequest = function (projKey, repo, prId, us
             }
             console.log('needs work update error', err)
             reject()
-        }).json({"status": "NEEDS_WORK"}).auth(userName, userName, true)
+        }).json({"status": "NEEDS_WORK"}).auth(userName, userPwd, true)
     })
 }
 
 
 // this is done with Q promise
-BitbucketRest.prototype.createPR = function (projKey, fromRepo, fromRef, toRepo, toRef, fromProjKeyOpt, asUserOpt) {
+BitbucketRest.prototype.createPR = function (projKey, fromRepo, fromRef, toRepo, toRef, fromProjKeyOpt, asUserOpt, asUserPwdOpt) {
     asUserOpt = asUserOpt || "admin";
+    asUserPwdOpt = asUserPwdOpt || asUserOpt
     var fromProjKey = fromProjKeyOpt || projKey;
     var self = this;
     var deferred = Q.defer();
@@ -278,7 +297,7 @@ BitbucketRest.prototype.createPR = function (projKey, fromRepo, fromRef, toRepo,
             }
         },
         "reviewers": []
-    }).auth(asUserOpt, asUserOpt, true);
+    }).auth(asUserOpt, asUserPwdOpt, true);
 
 
     return deferred.promise
