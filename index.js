@@ -365,6 +365,7 @@ BitbucketRest.prototype.getPullRequests = function(prjKey, repoSlug, urlParams){
 
 BitbucketRest.prototype.getPullRequest = function(prjKey, repoSlug, id, action){
     var self = this;
+    action = action || ''
     return new RSVP.Promise(function(resolve, reject){
         request.get(self.baseUrl+"/rest/api/1.0/projects/"+prjKey+"/repos/"+repoSlug+"/pull-requests/" + id + "/" + action, function(err, res, data){
             //console.log(data);
