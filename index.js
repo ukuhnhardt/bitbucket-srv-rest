@@ -227,6 +227,21 @@ BitbucketRest.prototype.deleteRepository = function (projKey, repo) {
         });
     };
 
+BitbucketRest.prototype.moveRepository = function (projKey, repo, newProjKey, newRepoName) {
+    var self = this;
+        return new RSVP.Promise(function (resolve, reject) {
+            request.put(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/repos/' + repo,function (err, res, data) {
+                console.log("Moved Repository to", newProjKey, newRepoName);
+                resolve(); // done
+            }).json({
+                "name": newRepoName,
+                "project": {
+                    "key": newProjKey
+                }
+            }).auth('admin', 'admin', true);
+        });
+    };
+
 BitbucketRest.prototype.approvePullRequest = function(projKey, repo, prId, userName, pw) {
     var self = this;
     pw = pw || userName
