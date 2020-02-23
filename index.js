@@ -441,7 +441,7 @@ BitbucketRest.prototype.mergePullRequest = function(prjKey, repoSlug, id, versio
   return new RSVP.Promise(function(resolve, reject) {
     const url = `${self.baseUrl}/rest/api/1.0/projects/${prjKey}/repos/${repoSlug}/pull-requests/${id}/merge?version=${version}`;
     const headers = {
-      'X-Atlassian-Token': 'nocheck'
+      'X-Atlassian-Token': 'no-check'
     }
     request.post({
       url,
