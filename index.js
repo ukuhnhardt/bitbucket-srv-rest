@@ -25,6 +25,20 @@ BitbucketRest.prototype.createProject = function(key, name) {
   });
 };
 
+BitbucketRest.prototype.getProject = function(projectKey) {
+  const self = this
+  return new RSVP.Promise((resolve, reject) => {
+    request.get(self.baseUrl + '/rest/api/1.0/projects/' + projectKey + '?limit=1000', function(err, res, data) {
+      if (!err) {
+        resolve(JSON.parse(data))
+      } else {
+        reject()
+      }
+    }).auth('admin', 'admin', true)
+  })
+}
+
+
 BitbucketRest.prototype.getRepos = function(projectKey) {
   const self = this
   return new RSVP.Promise((resolve, reject) => {
