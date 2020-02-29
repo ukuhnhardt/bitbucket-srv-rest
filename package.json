@@ -1,6 +1,6 @@
 {
   "name": "bitbucket-srv-rest",
-  "version": "1.4.9",
+  "version": "1.4.10",
   "description": "Bitbucket Server REST API Library",
   "main": "index.js",
   "scripts": {
