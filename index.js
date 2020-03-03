@@ -443,7 +443,7 @@ BitbucketRest.prototype.getPullRequest = function(prjKey, repoSlug, id, action) 
 
 BitbucketRest.prototype.getPullRequestStatus = function(prjKey, repoSlug, id) {
   var self = this;
-  action = 'merge'
+  var action = 'merge'
   return new RSVP.Promise(function(resolve, reject) {
     request.get(self.baseUrl + '/rest/api/1.0/projects/' + prjKey + '/repos/' + repoSlug + '/pull-requests/' + id + '/' + action, function(err, res, data) {
       //console.log(data);
@@ -466,10 +466,18 @@ BitbucketRest.prototype.mergePullRequest = function(prjKey, repoSlug, id, versio
     request.post({
       url,
       headers
-    }, function(err, res, data) {
+    }, function (err, res, data) {
       // console.log('merge result', data);
-      var prJson = JSON.parse(data);
-      resolve(prJson);
+      try {
+        if (err) {
+          throw err
+        }
+        var prJson = JSON.parse(data);
+        resolve(prJson)
+      } catch (exception) {
+        console.error('merge ', exception, data)
+        reject(exception, data)
+      }
     }).auth(userName, pwd, true);
 
   });
