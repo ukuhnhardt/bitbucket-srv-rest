@@ -1,6 +1,6 @@
 var RSVP = require('rsvp');
 var request = require('request');
-var exec = require('exec');
+var child_process = require('child_process');
 var Q = require('q');
 var _ = require('underscore');
 
@@ -60,17 +60,19 @@ BitbucketRest.prototype.createRepository = function(projectKey, repoName, repoZi
   return new RSVP.Promise(function(resolve, reject) {
     request.post(self.baseUrl + '/rest/api/1.0/projects/' + projectKey + '/repos', function(err, res, data) {
       console.log('Created Repository', data);
-      exec(`rm -Rf ${repoPath}; ` +
-        `tar -zxf ${repoZipPath} ${repoPath}; ` +
+      console.log('Pushing data from', repoZipPath)
+      child_process.exec(`rm -Rf ${repoPath} ; ` +
+        `tar -zxf ${repoZipPath} ${repoPath} ; ` +
         `cd ${repoPath} ; ` +
         'git remote rm origin ; ' +
         'git remote add origin ' + self.gitBaseUrl + '/scm/' + projectKey + '/' + repoName + '.git ; ' +
         'git push origin --all',
-        function(err, out, code) {
-          if (err instanceof Error)
-            throw err;
-          process.stderr.write(err);
-          process.stdout.write(out);
+        function(err, stdout, stderr) {
+          if (err ){
+            console.error(err);
+            reject(err)
+          }
+          console.log({stdout, stderr})
           resolve(); // done
         });
     }).json({
@@ -239,27 +241,30 @@ BitbucketRest.prototype.deleteGroup = function(name) {
   });
 };
 
-
-
 BitbucketRest.prototype.deleteProject = function(projectKey) {
   var self = this;
   return new RSVP.Promise(function(resolve, reject) {
-    console.log('Delete Project', projectKey);
     request.del(self.baseUrl + '/rest/api/1.0/projects/' + projectKey, function(err, res, data) {
+      console.log('Deleted Project', projectKey, data);
       resolve(); //done
     }).auth('admin', 'admin', true);
   });
 };
 
-BitbucketRest.prototype.deleteRepository = function(projKey, repo) {
+BitbucketRest.prototype.deleteRepository = function (projKey, repo) {
   var self = this;
-  return new RSVP.Promise(function(resolve, reject) {
+  return new RSVP.Promise(function (resolve, reject) {
     request.del(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/repos/' + repo, function(err, res, data) {
-      console.log('Deleted Repository', projKey, repo);
-      resolve(); // done
+      if (err) {
+        console.error(err)
+        reject(err)
+        return
+      }
+      console.log('Deleted Repository', data);
+      resolve() // done
     }).auth('admin', 'admin', true);
-  });
-};
+  })
+}
 
 BitbucketRest.prototype.moveRepository = function(projKey, repo, newProjKey, newRepoName) {
   var self = this;
