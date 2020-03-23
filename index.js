@@ -316,10 +316,12 @@ BitbucketRest.prototype.needsWorkPullRequest = function(projKey, repo, prId, use
 
 
 // this is done with Q promise
-BitbucketRest.prototype.createPR = function(projKey, fromRepo, fromRef, toRepo, toRef, fromProjKeyOpt, asUserOpt, asUserPwdOpt) {
-  asUserOpt = asUserOpt || 'admin';
+BitbucketRest.prototype.createPR = function (projKey, fromRepo, fromRef, toRepo, toRef, fromProjKeyOpt, asUserOpt, asUserPwdOpt, options) {
+  var title = options.title || 'Test PR'
+  var desc = options.desc || 'Test description'
+  asUserOpt = asUserOpt || 'admin'
   asUserPwdOpt = asUserPwdOpt || asUserOpt
-  var fromProjKey = fromProjKeyOpt || projKey;
+  var fromProjKey = fromProjKeyOpt || projKey
   var self = this;
   var deferred = Q.defer();
   request.post(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/repos/' + toRepo + '/pull-requests', function (err, res, data) {
@@ -333,8 +335,8 @@ BitbucketRest.prototype.createPR = function(projKey, fromRepo, fromRef, toRepo, 
       deferred.reject(new Error(data))
     }
   }).json({
-    'title': 'Test PR',
-    'description': 'test description',
+    'title': title,
+    'description': desc,
     'state': 'OPEN',
     'open': true,
     'closed': false,
