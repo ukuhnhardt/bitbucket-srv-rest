@@ -104,9 +104,9 @@ BitbucketRest.prototype.fork = function (projectKey, repoName, forkName, user) {
   };
   var deferred = Q.defer()
   console.log('forking', repoName, 'to', forkName)
-  request.post(self.baseUrl + '/rest/api/1.0/projects/' + projectKey + '/repos/' + repoName, function(err, res, data) {
-    if (!err) deferred.resolve(data);
-    else deferred.reject(new Error(err));
+  request.post(self.baseUrl + '/rest/api/1.0/projects/' + projectKey + '/repos/' + repoName, function (err, res, data) {
+    if (!err) deferred.resolve(data)
+    else deferred.reject(err)
   }).json({
     'name': forkName,
     'slug': forkName,
@@ -330,8 +330,12 @@ BitbucketRest.prototype.needsWorkPullRequest = function(projKey, repo, prId, use
 
 // this is done with Q promise
 BitbucketRest.prototype.createPR = function (projKey, fromRepo, fromRef, toRepo, toRef, fromProjKeyOpt, asUserOpt, asUserPwdOpt, options) {
-  var title = options.title || 'Test PR'
-  var desc = options.desc || 'Test description'
+  var title = options ?
+    options.title || 'Test PR'
+    : 'Test PR'
+  var desc = options ?
+    options.desc || 'Test description'
+    : 'Test description'
   asUserOpt = asUserOpt || 'admin'
   asUserPwdOpt = asUserPwdOpt || asUserOpt
   var fromProjKey = fromProjKeyOpt || projKey
