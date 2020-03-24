@@ -53,6 +53,19 @@ BitbucketRest.prototype.getRepos = function(projectKey) {
   })
 }
 
+BitbucketRest.prototype.getRepo = function(projectKey, repoSlug) {
+  const self = this
+  return new RSVP.Promise((resolve, reject) => {
+    request.get(self.baseUrl + '/rest/api/1.0/projects/' + projectKey + '/repos/' + repoSlug, function (err, res, data) {
+      if (!err) {
+        resolve(JSON.parse(data))
+      } else {
+        reject()
+      }
+    }).auth('admin', 'admin', true)
+  })
+}
+
 BitbucketRest.prototype.createRepository = function(projectKey, repoName, repoZipPath) {
   var self = this;
   repoZipPath = repoZipPath || 'src/test/repo.tgz'
@@ -83,7 +96,7 @@ BitbucketRest.prototype.createRepository = function(projectKey, repoName, repoZi
   });
 };
 
-BitbucketRest.prototype.fork = function(projectKey, repoName, forkName, user) {
+BitbucketRest.prototype.fork = function (projectKey, repoName, forkName, user) {
   var self = this;
   user = user || {
     name: 'admin',
