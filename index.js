@@ -344,12 +344,12 @@ BitbucketRest.prototype.createPR = function (projKey, fromRepo, fromRef, toRepo,
   request.post(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/repos/' + toRepo + '/pull-requests', function (err, res, data) {
     if (err) {
       console.log('error creating PR', err)
-      deferred.reject(new Error(err))
+      deferred.reject(err)
     } else if (data && data.id) {
       deferred.resolve(data)
     } else {
       console.log('problem creating PR', data)
-      deferred.reject(new Error(data))
+      deferred.reject(data)
     }
   }).json({
     'title': title,
