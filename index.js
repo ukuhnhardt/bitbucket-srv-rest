@@ -157,22 +157,24 @@ BitbucketRest.prototype.getForks = function(projectKey, repoName) {
   });
 };
 
-BitbucketRest.prototype.setRepositoryGroupPermissions = function(projKey, repoName, group) {
+BitbucketRest.prototype.setRepositoryGroupPermissions = function(projKey, repoName, group, permission) {
   var self = this;
+  permission = permission || 'REPO_WRITE'
   return new RSVP.Promise(function(resolve, reject) {
-    request.put(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/repos/' + repoName + '/permissions/groups?permission=REPO_WRITE&name=' + group, function(err, res, data) {
-      console.log('set repo write permissions for', projKey, repoName, group);
+    request.put(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/repos/' + repoName + `/permissions/groups?permission=${permission}&name=${group}`, function(err, res, data) {
+      console.log('set repo write permissions for', projKey, repoName, group, permission);
       if (!err) resolve();
       else reject();
     }).auth('admin', 'admin', true);
   });
 };
 
-BitbucketRest.prototype.setProjectGroupPermissions = function(projKey, group) {
+BitbucketRest.prototype.setProjectGroupPermissions = function(projKey, group, permission) {
   var self = this;
+  permission = permission || 'PROJECT_WRITE'
   return new RSVP.Promise(function(resolve, reject) {
-    request.put(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/permissions/groups?permission=PROJECT_WRITE&name=' + group, function(err, res, data) {
-      console.log('set project write permissions for', projKey, group);
+    request.put(self.baseUrl + '/rest/api/1.0/projects/' + projKey + `/permissions/groups?permission=${permission}&name=${group}`, function(err, res, data) {
+      console.log('set project write permissions for', projKey, group, permission);
       if (!err) resolve();
       else reject();
     }).auth('admin', 'admin', true);
