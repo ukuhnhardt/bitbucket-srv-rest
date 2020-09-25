@@ -145,7 +145,6 @@ BitbucketRest.prototype.deletePrivateFork = function(projKey, repo) {
 };
 
 
-
 BitbucketRest.prototype.getForks = function(projectKey, repoName) {
   var self = this;
   return new RSVP.Promise(function(resolve, reject) {
@@ -169,12 +168,37 @@ BitbucketRest.prototype.setRepositoryGroupPermissions = function(projKey, repoNa
   });
 };
 
+BitbucketRest.prototype.setRepositoryUserPermissions = function(projKey, repoName, username, permission) {
+  var self = this;
+  permission = permission || 'REPO_WRITE'
+  return new RSVP.Promise(function(resolve, reject) {
+    request.put(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/repos/' + repoName + `/permissions/users?permission=${permission}&name=${username}`, function(err, res, data) {
+      console.log('set repo write permissions for', projKey, repoName, username, permission);
+      if (!err) resolve();
+      else reject();
+    }).auth('admin', 'admin', true);
+  });
+};
+
+
 BitbucketRest.prototype.setProjectGroupPermissions = function(projKey, group, permission) {
   var self = this;
   permission = permission || 'PROJECT_WRITE'
   return new RSVP.Promise(function(resolve, reject) {
     request.put(self.baseUrl + '/rest/api/1.0/projects/' + projKey + `/permissions/groups?permission=${permission}&name=${group}`, function(err, res, data) {
       console.log('set project write permissions for', projKey, group, permission);
+      if (!err) resolve();
+      else reject();
+    }).auth('admin', 'admin', true);
+  });
+};
+
+BitbucketRest.prototype.setProjectUserPermissions = function(projKey, username, permission) {
+  var self = this;
+  permission = permission || 'PROJECT_WRITE'
+  return new RSVP.Promise(function(resolve, reject) {
+    request.put(self.baseUrl + '/rest/api/1.0/projects/' + projKey + `/permissions/users?permission=${permission}&name=${username}`, function(err, res, data) {
+      console.log('set project write permissions for', projKey, username, permission);
       if (!err) resolve();
       else reject();
     }).auth('admin', 'admin', true);
