@@ -686,4 +686,35 @@ BitbucketRest.prototype.completeTask = function(taskId) {
   })
 }
 
+BitbucketRest.prototype.setMailServer = function(hostname, port, senderddress) {
+  const self = this
+  return new Promise((resolve, reject) => {
+    request.put(`${self.baseUrl}/rest/api/1.0/admin/mail-server`, (err, resp, data) => {
+      if (!err && resp.statusCode < 400) {
+        // console.log('created bitbucket mail server', data)
+        resolve(data)
+        return
+      } 
+      reject(resp.statusCode, err)
+    })
+    .json({hostname, port, "sender-address": senderddress})
+    .auth('admin', 'admin', true)
+  })
+}
+
+BitbucketRest.prototype.deleteMailServer = function() {
+  const self = this
+  return new Promise((resolve, reject) => {
+    request.del(`${self.baseUrl}/rest/api/1.0/admin/mail-server`, (err, resp, data) => {
+      if (!err && resp.statusCode < 400) {
+        // console.log('deleted bitbucket mail server')
+        resolve()
+        return
+      } 
+      reject(resp.statusCode, err)
+    })
+    .auth('admin', 'admin', true)
+  })
+}
+
 module.exports = BitbucketRest
