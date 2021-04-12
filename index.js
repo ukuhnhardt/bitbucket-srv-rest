@@ -564,6 +564,7 @@ BitbucketRest.prototype.getBranches = function(prjKey, repoSlug) {
     }).auth('admin', 'admin', true);
   });
 };
+
 // result = SUCCESSFUL or FAILED or INPROGRESS
 BitbucketRest.prototype.sendBuildResult = function(latestFromChangeset, key, result) {
   key = key || 'REPO-MASTER-' + new Date().getTime();
@@ -571,6 +572,25 @@ BitbucketRest.prototype.sendBuildResult = function(latestFromChangeset, key, res
   var self = this;
   return new RSVP.Promise(function(resolve, reject) {
     request.post(self.baseUrl + '/rest/build-status/1.0/commits/' + latestFromChangeset, function(err, res, data) {
+      console.log('build result sent', result);
+      resolve();
+    }).json({
+      'state': result,
+      // this is just bla bla
+      'key': key,
+      'name': key + '-42',
+      'url': 'https://bamboo.example.com/browse/REPO-MASTER-42',
+      'description': 'Changes by John Doe'
+    }).auth('admin', 'admin', true);
+  });
+};
+// result = SUCCESSFUL or FAILED or INPROGRESS
+BitbucketRest.prototype.sendBambooBuildResult = function(projKey, repoSlug,latestFromChangeset, key, result) {
+  key = key || 'REPO-MASTER-' + new Date().getTime();
+  result = result || 'SUCCESSFUL'
+  var self = this;
+  return new RSVP.Promise(function(resolve, reject) {
+    request.post(self.baseUrl + `/rest/api/1.0/projects/${projectKey}/repos/${repositorySlug}/commits/${latestFromChangeset}/builds` , function(err, res, data) {
       console.log('build result sent', result);
       resolve();
     }).json({
