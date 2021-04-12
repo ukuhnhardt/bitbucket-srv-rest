@@ -590,7 +590,7 @@ BitbucketRest.prototype.sendBambooBuildResult = function(projKey, repoSlug,lates
   result = result || 'SUCCESSFUL'
   var self = this;
   return new RSVP.Promise(function(resolve, reject) {
-    request.post(self.baseUrl + `/rest/api/1.0/projects/${projectKey}/repos/${repositorySlug}/commits/${latestFromChangeset}/builds` , function(err, res, data) {
+    request.post(self.baseUrl + `/rest/api/1.0/projects/${projKey}/repos/${repoSlug}/commits/${latestFromChangeset}/builds` , function(err, res, data) {
       console.log('build result sent', result);
       resolve();
     }).json({
