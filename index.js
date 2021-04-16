@@ -584,25 +584,29 @@ BitbucketRest.prototype.sendBuildResult = function(latestFromChangeset, key, res
     }).auth('admin', 'admin', true);
   });
 };
+
 // result = SUCCESSFUL or FAILED or INPROGRESS
-BitbucketRest.prototype.sendBambooBuildResult = function(projKey, repoSlug,latestFromChangeset, key, result) {
+BitbucketRest.prototype.sendBambooBuildResult = function(projKey, repoSlug, ref, latestFromChangeset, key, result) {
   key = key || 'REPO-MASTER-' + new Date().getTime();
   result = result || 'SUCCESSFUL'
   var self = this;
+  let data = !!ref ? {ref: ref} : {}
   return new RSVP.Promise(function(resolve, reject) {
     request.post(self.baseUrl + `/rest/api/1.0/projects/${projKey}/repos/${repoSlug}/commits/${latestFromChangeset}/builds` , function(err, res, data) {
       console.log('build result sent', result);
       resolve();
-    }).json({
+    }).json({...data,
       'state': result,
       // this is just bla bla
       'key': key,
       'name': key + '-42',
+      'ref': ref,
       'url': 'https://bamboo.example.com/browse/REPO-MASTER-42',
       'description': 'Changes by John Doe'
     }).auth('admin', 'admin', true);
   });
 };
+
 
 BitbucketRest.prototype.pullRequestSettings = function(projKey, repo, settings) {
   var self = this
