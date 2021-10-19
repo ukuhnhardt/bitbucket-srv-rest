@@ -13,14 +13,14 @@ BitbucketRest.prototype.createProject = function(key, name) {
   var self = this;
   return new RSVP.Promise(function(resolve, reject) {
     var uri = self.baseUrl + '/rest/api/1.0/projects';
-    //        console.log('create project', uri);
+    console.log('create project', uri);
     request.post(uri, function(err, res, data) {
       // succeed
       resolve(data);
     }).json({
       'key': key,
       'name': name,
-      'description': 'A Test Project.'
+      'description': `A Test Project named ${name}.`
     }).auth('admin', 'admin', true);
   });
 };
@@ -72,8 +72,8 @@ BitbucketRest.prototype.createRepository = function(projectKey, repoName, repoZi
   const repoPath = repoZipPath.substr(0, repoZipPath.lastIndexOf('.'))
   return new RSVP.Promise(function(resolve, reject) {
     request.post(self.baseUrl + '/rest/api/1.0/projects/' + projectKey + '/repos', function(err, res, data) {
-      console.log('Created Repository', data);
-      console.log('Pushing data from', repoZipPath)
+      // console.log('Created Repository', data);
+      // console.log('Pushing data from', repoZipPath)
       child_process.exec(`rm -Rf ${repoPath} ; ` +
         `tar -zxf ${repoZipPath} ${repoPath} ; ` +
         `cd ${repoPath} ; ` +
@@ -86,7 +86,7 @@ BitbucketRest.prototype.createRepository = function(projectKey, repoName, repoZi
             reject(err)
           }
           console.log({stdout, stderr})
-          resolve(); // done
+          resolve(data); // done
         });
     }).json({
       'name': repoName,
@@ -149,19 +149,44 @@ BitbucketRest.prototype.getForks = function(projectKey, repoName) {
   var self = this;
   return new RSVP.Promise(function(resolve, reject) {
     request.get(self.baseUrl + '/rest/api/1.0/projects/' + projectKey + '/repos/' + repoName + '/forks', function(err, res, data) {
-      if (err) reject();
+      if (err) {
+        reject();
+        return
+      }
       var forks = JSON.parse(data);
       resolve(forks);
     }).auth('admin', 'admin', true);
   });
 };
 
-BitbucketRest.prototype.setRepositoryGroupPermissions = function(projKey, repoName, group, permission) {
+BitbucketRest.prototype.searchGroups = function(projId = '', repoId = '', searchFilter = '') {
+  const self = this
+  const urlParams = ['permission.1=LICENSED_USER']
+  urlParams.push(`permission.2=${repoId ? 'REPO_READ' : 'PROJECT_READ'}`)
+  urlParams.push(`permission.2.${repoId ? 'repositoryId='+repoId : 'projectId=' + projId}`)
+  urlParams.push(`filter=${searchFilter}`)
+  urlParams.push('source.app.key=com.izymes.workzone')
+  urlParams.push('start=0')
+  const groupsUrl = self.baseUrl + '/rest/api/latest/groups?' + urlParams.join('&');
+  console.log('searching groups', groupsUrl)
+  return new Promise((resolve, reject) => request
+    .get(groupsUrl, function(err, res, data) {
+     if (!err) {
+       resolve(JSON.parse(data))
+     } else {
+       reject(err)
+     }
+    })
+    .auth('admin', 'admin', true)
+    )
+}
+
+BitbucketRest.prototype.setRepositoryGroupPermissions = function(projKey, repoSlug, group, permission) {
   var self = this;
   permission = permission || 'REPO_WRITE'
   return new RSVP.Promise(function(resolve, reject) {
-    request.put(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/repos/' + repoName + `/permissions/groups?permission=${permission}&name=${group}`, function(err, res, data) {
-      console.log('set repo write permissions for', projKey, repoName, group, permission);
+    request.put(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/repos/' + repoSlug + `/permissions/groups?permission=${permission}&name=${group}`, function(err, res, data) {
+      console.log('set repo write permissions for', projKey, repoSlug, group, permission);
       if (!err) resolve();
       else reject();
     }).auth('admin', 'admin', true);
@@ -226,6 +251,22 @@ BitbucketRest.prototype.createUser = function(user) {
       }).json({}).auth('admin', 'admin', true);
   });
 };
+
+BitbucketRest.prototype.getUsers = function(filter) {
+  const self = this
+  return new Promise((resolve, reject) => {
+    request.get(self.baseUrl + '/rest/api/1.0/admin/users?filter=' + filter,
+      function(err, res, data) {
+        if (!err) {
+          resolve(data)
+        } else {
+          console.error(err)
+          reject()
+        }
+      })
+      .auth('admin', 'admin', true)
+  })
+}
 
 /**
  *
@@ -607,6 +648,34 @@ BitbucketRest.prototype.sendBambooBuildResult = function(projKey, repoSlug, ref,
   });
 };
 
+BitbucketRest.prototype.setReviewerGroup = function(projKey, repoSlug = '', reviewerGroup ) {
+  var self = this
+  const url = self.baseUrl + `/rest/api/latest/projects/${projKey}${repoSlug ? '/repos/' + repoSlug : ''}/settings/reviewer-groups`
+  return new Promise((resolve, reject) => request
+    .post(url, function(err, res, data){
+      if (!err) 
+        resolve(data)
+      else
+        reject(err)
+    })
+    .json(reviewerGroup)
+    .auth('admin', 'admin', true)
+  )
+}
+
+BitbucketRest.prototype.getReviewerGroups = function(projKey, repoSlug = '' ) {
+  var self = this
+  const url = self.baseUrl + `/rest/api/latest/projects/${projKey}${repoSlug ? '/repos/' + repoSlug : ''}/settings/reviewer-groups`
+  return new Promise((resolve, reject) => request
+    .get(url, function(err, res, data){
+      if (!err) 
+        resolve(data)
+      else
+        reject(err)
+    })
+    .auth('admin', 'admin', true)
+  )
+}
 
 BitbucketRest.prototype.pullRequestSettings = function(projKey, repo, settings) {
   var self = this
@@ -746,7 +815,7 @@ BitbucketRest.prototype.getUser = function(username) {
   return new Promise((resolve, reject) => {
     request.get(`${self.baseUrl}/rest/api/1.0/users/${username}`, (err, resp, data) => {
       if (!err && resp.statusCode < 400) {
-        console.log('user details', data)
+        // console.log('user details', data)
         resolve(JSON.parse(data))
         return
       }
