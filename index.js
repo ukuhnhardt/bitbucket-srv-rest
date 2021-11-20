@@ -186,7 +186,18 @@ BitbucketRest.prototype.setRepositoryGroupPermissions = function(projKey, repoSl
   permission = permission || 'REPO_WRITE'
   return new RSVP.Promise(function(resolve, reject) {
     request.put(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/repos/' + repoSlug + `/permissions/groups?permission=${permission}&name=${group}`, function(err, res, data) {
-      console.log('set repo write permissions for', projKey, repoSlug, group, permission);
+      console.log(`set repo permissions for group:`, projKey, repoSlug, group, permission);
+      if (!err) resolve();
+      else reject();
+    }).auth('admin', 'admin', true);
+  });
+};
+
+BitbucketRest.prototype.deleteRepositoryGroupPermissions = function(projKey, repoSlug, group) {
+  var self = this;
+  return new RSVP.Promise(function(resolve, reject) {
+    request.del(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/repos/' + repoSlug + `/permissions/groups?name=${group}`, function(err, res, data) {
+      console.log(`delete repo ${projKey}/${repoSlug} permissions for group ${group}`);
       if (!err) resolve();
       else reject();
     }).auth('admin', 'admin', true);
@@ -532,15 +543,16 @@ BitbucketRest.prototype.getPullRequest = function(prjKey, repoSlug, id, action) 
   });
 };
 
-BitbucketRest.prototype.getPullRequestStatus = function(prjKey, repoSlug, id) {
+BitbucketRest.prototype.getPullRequestStatus = function(prjKey, repoSlug, id, asUser) {
   var self = this;
   var action = 'merge'
+  asUser = asUser || ['admin', 'admin']
   return new RSVP.Promise(function(resolve, reject) {
     request.get(self.baseUrl + '/rest/api/1.0/projects/' + prjKey + '/repos/' + repoSlug + '/pull-requests/' + id + '/' + action, function(err, res, data) {
       //console.log(data);
       var prJson = JSON.parse(data);
       resolve(prJson);
-    }).auth('admin', 'admin', true);
+    }).auth(...asUser, true);
 
   });
 };
