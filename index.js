@@ -263,6 +263,25 @@ BitbucketRest.prototype.createUser = function(user) {
   });
 };
 
+BitbucketRest.prototype.deleteUser = function(user) {
+  var self = this;
+  return new RSVP.Promise(function(resolve, reject) {
+    //        console.log('creating user', user);
+    request.del(self.baseUrl + '/rest/api/1.0/admin/users?' +
+      'name=' + user.name
+      function(err, res, data) {
+                   console.log('deleted user', data);
+        if (!err) {
+          resolve(); // done
+        } else {
+          console.log(err);
+          reject();
+        }
+      }).json({}).auth('admin', 'admin', true);
+  });
+};
+
+
 BitbucketRest.prototype.getUsers = function(filter) {
   const self = this
   return new Promise((resolve, reject) => {
