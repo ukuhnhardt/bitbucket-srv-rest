@@ -268,7 +268,7 @@ BitbucketRest.prototype.deleteUser = function(user) {
   return new RSVP.Promise(function(resolve, reject) {
     //        console.log('creating user', user);
     request.del(self.baseUrl + '/rest/api/1.0/admin/users?' +
-      'name=' + user.name
+      'name=' + user.name,
       function(err, res, data) {
                    console.log('deleted user', data);
         if (!err) {
