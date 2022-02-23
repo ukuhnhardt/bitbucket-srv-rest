@@ -9,6 +9,17 @@ var BitbucketRest = function(opts) {
   this.gitBaseUrl = opts.gitBaseUrl;
 };
 
+BitbucketRest.prototype.asUser = function (userName, password) {
+  this.auth = {userName, password}
+}
+
+BitbucketRest.prototype.getAuth = function () {
+  var userName = this.auth ? this.auth.userName : 'admin'
+  var pw = this.auth ? this.auth.password : 'admin'
+  console.log('getAuth', [userName, pw])
+  return [userName, pw]
+}
+
 BitbucketRest.prototype.createProject = function(key, name) {
   var self = this;
   return new RSVP.Promise(function(resolve, reject) {
@@ -653,7 +664,7 @@ BitbucketRest.prototype.sendBuildResult = function(latestFromChangeset, key, res
       'name': key + '-42',
       'url': 'https://bamboo.example.com/browse/REPO-MASTER-42',
       'description': 'Changes by John Doe'
-    }).auth('admin', 'admin', true);
+    }).auth(...self.getAuth(), true);
   });
 };
 
@@ -675,7 +686,7 @@ BitbucketRest.prototype.sendBambooBuildResult = function(projKey, repoSlug, ref,
       'ref': ref,
       'url': 'https://bamboo.example.com/browse/REPO-MASTER-42',
       'description': 'Changes by John Doe'
-    }).auth('admin', 'admin', true);
+    }).auth(...self.getAuth(), true);
   });
 };
 
