@@ -492,23 +492,49 @@ BitbucketRest.prototype.createPR = function (projKey, fromRepo, fromRef, toRepo,
   return deferred.promise
 };
 
-BitbucketRest.prototype.commentPullRequest = function(projKey, repoSlug, id, text, userName, userPassword) {
+BitbucketRest.prototype.commentPullRequest = function(projKey, repoSlug, id, text, userName, userPassword, severity) {
   var self = this;
   userName = userName || 'admin'
   userPassword = userPassword || 'admin'
+  severity = severity || "NORMAL"
   return new RSVP.Promise(function(resolve, reject) {
-    console.log('comment PR', id, userName, userPassword)
+    console.log('comment PR', id, "by user", userName, userPassword)
     request.post(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/repos/' + repoSlug + '/pull-requests/' + id + '/comments', function(err, res, data) {
       if (!err && !data.errors) {
-        console.log('PR commented', data.id);
+        const {id, severity, state} = data
+        console.log('PR commented resp', {id, severity, state});
         resolve(data);
         return;
       }
       console.error(err, JSON.stringify(data));
       reject();
     }).json({
-      text: text
+      text: text,
+      severity: severity
     }).auth(userName, userPassword, true);
+  })
+}
+
+BitbucketRest.prototype.updatePullRequestComment = function (commentId, version, pullRequestId, projKey,
+                                                             repoSlug, severity, state, userName, userPassword) {
+  var self = this;
+  userName = userName || 'admin'
+  userPassword = userPassword || 'admin'
+  severity = severity || "NORMAL"
+  state = state || "OPEN"
+  return new Promise((resolve, reject) => {
+    request.put(`${self.baseUrl}/rest/api/1.0/projects/${projKey}/repos/${repoSlug}/pull-requests/${pullRequestId}/comments/${commentId}`, function(err, res, data) {
+      if (!err && !data.errors) {
+        const {id, severity, state} = data
+        console.log(`PR ${pullRequestId} comment updated resp`, {id, severity, state, userName})
+        resolve(data)
+        return
+      }
+      console.error(err, JSON.stringify(data))
+      reject()
+    }).json({
+      severity, state, version
+    }).auth(userName, userPassword, true)
   })
 }
 
