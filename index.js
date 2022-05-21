@@ -438,12 +438,12 @@ BitbucketRest.prototype.needsWorkPullRequest = function(projKey, repo, prId, use
 
 // this is done with Q promise
 BitbucketRest.prototype.createPR = function (projKey, fromRepo, fromRef, toRepo, toRef, fromProjKeyOpt, asUserOpt, asUserPwdOpt, options) {
-  var title = options ?
-    options.title || 'Test PR'
-    : 'Test PR'
-  var desc = options ?
-    options.desc || 'Test description'
-    : 'Test description'
+  var title = options && options.title ?
+    options.title : 'Test PR'
+  var desc = options && options.desc ?
+    options.desc : 'Test description'
+  var reviewers = options && options.reviewers ? 
+    options.reviewers : []
   asUserOpt = asUserOpt || 'admin'
   asUserPwdOpt = asUserPwdOpt || asUserOpt
   var fromProjKey = fromProjKeyOpt || projKey
@@ -485,7 +485,7 @@ BitbucketRest.prototype.createPR = function (projKey, fromRepo, fromRef, toRepo,
         }
       }
     },
-    'reviewers': []
+    'reviewers': reviewers
   }).auth(asUserOpt, asUserPwdOpt, true);
 
 
