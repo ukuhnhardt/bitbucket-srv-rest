@@ -16,7 +16,7 @@ BitbucketRest.prototype.asUser = function (userName, password) {
 BitbucketRest.prototype.getAuth = function () {
   var userName = this.auth ? this.auth.userName : 'admin'
   var pw = this.auth ? this.auth.password : 'admin'
-  console.log('getAuth', [userName, pw])
+  // console.log('getAuth', [userName, pw])
   return [userName, pw]
 }
 
@@ -196,10 +196,11 @@ BitbucketRest.prototype.searchGroups = function(projId = '', repoId = '', search
 BitbucketRest.prototype.setGlobalGroupPermission = function (permission = 'LICENSED_USER', group) {
   var self = this;
   return new Promise((resolve, reject) => {
-    request.put(`${self.baseUrl}/rest/api/admin/permissions/groups?permission=${permission}&name=${group}`, function (err, res, data) {
+    request.put(`${self.baseUrl}/rest/api/1.0/admin/permissions/groups?permission=${permission}&name=${group}`, function (err, res, data) {
       if (!err && res.statusCode < 400) {
         resolve()
       } else {
+        console.error("setGlobalGroupPermission", err, data)
         reject(res.statusCode)
       }
     }).auth(...self.getAuth(), true)
