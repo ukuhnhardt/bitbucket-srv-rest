@@ -203,7 +203,7 @@ BitbucketRest.prototype.setGlobalGroupPermission = function (permission, group) 
       } else {
         reject(res.statusCode)
       }
-    })
+    }).auth(...self.getAuth(), true)
   })
 
 }
