@@ -285,7 +285,7 @@ BitbucketRest.prototype.createUser = function(user) {
           console.log(err);
           reject();
         }
-      }).json({}).auth('admin', 'admin', true);
+      }).json({}).auth(...self.getAuth(), true);
   });
 };
 
@@ -345,7 +345,7 @@ BitbucketRest.prototype.addUserGroups = function(user, groups) {
     }).json({
       'user': user,
       'groups': groups
-    }).auth('admin', 'admin', true);
+    }).auth(...self.getAuth(), true);
   });
 };
 
@@ -359,7 +359,7 @@ BitbucketRest.prototype.createGroup = function(name) {
         console.log(err)
         reject()
       }
-    }).json({}).auth('admin', 'admin', true)
+    }).json({}).auth(...self.getAuth(), true)
   });
 };
 
