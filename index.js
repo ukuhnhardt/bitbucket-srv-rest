@@ -192,6 +192,22 @@ BitbucketRest.prototype.searchGroups = function(projId = '', repoId = '', search
     )
 }
 
+// LICENSED_USER, PROJECT_CREATE, ADMIN, SYS_ADMIN
+BitbucketRest.prototype.setGlobalGroupPermission = function (permission, group) {
+  var self = this;
+  permission = permission || 'LICENSED_USER',
+  return new Promise((resolve, reject) => {
+    request.put(`${self.baseUrl}/rest/api/admin/permissions/groups?permission=${permission}&name=${group}`, function (err, res, data) {
+      if (!err && res.statusCode < 400) {
+        resolve()
+      } else {
+        reject(res.statusCode)
+      }
+    })
+  })
+
+}
+
 BitbucketRest.prototype.setRepositoryGroupPermissions = function(projKey, repoSlug, group, permission) {
   var self = this;
   permission = permission || 'REPO_WRITE'
