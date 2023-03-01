@@ -85,12 +85,12 @@ BitbucketRest.prototype.createRepository = function(projectKey, repoName, repoZi
   return new RSVP.Promise(function(resolve, reject) {
     request.post(self.baseUrl + '/rest/api/1.0/projects/' + projectKey + '/repos', function(err, res, data) {
       // console.log('Created Repository', data);
-      // console.log('Pushing data from', repoZipPath)
+      console.log('Pushing data from', repoZipPath, repoPath)
       child_process.exec(`rm -Rf ${repoPath} ; ` +
         `tar -zxf ${repoZipPath} ${repoPath} ; ` +
         `cd ${repoPath} ; ` +
         'git remote rm origin ; ' +
-        'git remote add origin ' + self.gitBaseUrl + '/scm/' + projectKey + '/' + repoName + '.git ; ' +
+        `git remote add origin '${self.gitBaseUrl}/scm/${projectKey}/${repoName}.git' ; ` +
         'git push origin --all',
         function(err, stdout, stderr) {
           if (err ){
@@ -461,8 +461,8 @@ BitbucketRest.prototype.createPR = function (projKey, fromRepo, fromRef, toRepo,
     options.desc : 'Test description'
   var reviewers = options && options.reviewers ? 
     options.reviewers : []
-  asUserOpt = asUserOpt || 'admin'
-  asUserPwdOpt = asUserPwdOpt || asUserOpt
+  asUserOpt = asUserOpt || this.getAuth()[0]
+  asUserPwdOpt = asUserPwdOpt || this.getAuth()[1]
   var fromProjKey = fromProjKeyOpt || projKey
   var self = this;
   var deferred = Q.defer();
