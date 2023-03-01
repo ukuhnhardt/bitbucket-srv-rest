@@ -11,6 +11,7 @@ var BitbucketRest = function(opts) {
 
 BitbucketRest.prototype.asUser = function (userName, password) {
   this.auth = {userName, password}
+  return this
 }
 
 BitbucketRest.prototype.getAuth = function () {
@@ -32,7 +33,7 @@ BitbucketRest.prototype.createProject = function(key, name) {
       'key': key,
       'name': name,
       'description': `A Test Project named ${name}.`
-    }).authauth(...self.getAuth(), true);
+    }).auth(...self.getAuth(), true);
   });
 };
 
@@ -45,7 +46,7 @@ BitbucketRest.prototype.getProject = function(projectKey) {
       } else {
         reject()
       }
-    }).authauth(...self.getAuth(), true)
+    }).auth(...self.getAuth(), true)
   })
 }
 
@@ -60,7 +61,7 @@ BitbucketRest.prototype.getRepos = function(projectKey) {
       } else {
         reject()
       }
-    }).authauth(...self.getAuth(), true)
+    }).auth(...self.getAuth(), true)
   })
 }
 
@@ -73,7 +74,7 @@ BitbucketRest.prototype.getRepo = function(projectKey, repoSlug) {
       } else {
         reject()
       }
-    }).authauth(...self.getAuth(), true)
+    }).auth(...self.getAuth(), true)
   })
 }
 
@@ -103,7 +104,7 @@ BitbucketRest.prototype.createRepository = function(projectKey, repoName, repoZi
       'name': repoName,
       'scmId': 'git',
       'forkable': true
-    }).authauth(...self.getAuth(), true);
+    }).auth(...self.getAuth(), true);
   });
 };
 
@@ -151,7 +152,7 @@ BitbucketRest.prototype.deletePrivateFork = function(projKey, repo) {
     request.del(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/repos/' + repo, function(err, res, data) {
       console.log('Deleted Repository', projKey, repo);
       resolve(); // done
-    }).authauth(...self.getAuth(), true);
+    }).auth(...self.getAuth(), true);
   });
 };
 
@@ -166,7 +167,7 @@ BitbucketRest.prototype.getForks = function(projectKey, repoName) {
       }
       var forks = JSON.parse(data);
       resolve(forks);
-    }).authauth(...self.getAuth(), true);
+    }).auth(...self.getAuth(), true);
   });
 };
 
@@ -188,7 +189,7 @@ BitbucketRest.prototype.searchGroups = function(projId = '', repoId = '', search
        reject(err)
      }
     })
-    .authauth(...self.getAuth(), true)
+    .auth(...self.getAuth(), true)
     )
 }
 
@@ -216,7 +217,7 @@ BitbucketRest.prototype.setRepositoryGroupPermissions = function(projKey, repoSl
       console.log(`set repo permissions for group:`, projKey, repoSlug, group, permission);
       if (!err) resolve();
       else reject();
-    }).authauth(...self.getAuth(), true);
+    }).auth(...self.getAuth(), true);
   });
 };
 
@@ -227,7 +228,7 @@ BitbucketRest.prototype.deleteRepositoryGroupPermissions = function(projKey, rep
       console.log(`delete repo ${projKey}/${repoSlug} permissions for group ${group}`);
       if (!err) resolve();
       else reject();
-    }).authauth(...self.getAuth(), true);
+    }).auth(...self.getAuth(), true);
   });
 };
 
@@ -239,7 +240,7 @@ BitbucketRest.prototype.setRepositoryUserPermissions = function(projKey, repoNam
       console.log('set repo write permissions for', projKey, repoName, username, permission);
       if (!err) resolve();
       else reject();
-    }).authauth(...self.getAuth(), true);
+    }).auth(...self.getAuth(), true);
   });
 };
 
@@ -252,7 +253,7 @@ BitbucketRest.prototype.setProjectGroupPermissions = function(projKey, group, pe
       console.log('set project write permissions for', projKey, group, permission);
       if (!err) resolve();
       else reject();
-    }).authauth(...self.getAuth(), true);
+    }).auth(...self.getAuth(), true);
   });
 };
 
@@ -264,7 +265,7 @@ BitbucketRest.prototype.setProjectUserPermissions = function(projKey, username, 
       console.log('set project write permissions for', projKey, username, permission);
       if (!err) resolve();
       else reject();
-    }).authauth(...self.getAuth(), true);
+    }).auth(...self.getAuth(), true);
   });
 };
 
@@ -304,7 +305,7 @@ BitbucketRest.prototype.deleteUser = function(user) {
           console.log(err);
           reject();
         }
-      }).json({}).authauth(...self.getAuth(), true);
+      }).json({}).auth(...self.getAuth(), true);
   });
 };
 
@@ -321,7 +322,7 @@ BitbucketRest.prototype.getUsers = function(filter) {
           reject()
         }
       })
-      .authauth(...self.getAuth(), true)
+      .auth(...self.getAuth(), true)
   })
 }
 
@@ -374,7 +375,7 @@ BitbucketRest.prototype.deleteGroup = function(name) {
         console.log(err);
         reject();
       }
-    }).json({}).authauth(...self.getAuth(), true);
+    }).json({}).auth(...self.getAuth(), true);
   });
 };
 
@@ -384,7 +385,7 @@ BitbucketRest.prototype.deleteProject = function(projectKey) {
     request.del(self.baseUrl + '/rest/api/1.0/projects/' + projectKey, function(err, res, data) {
       console.log('Deleted Project', projectKey, data);
       resolve(); //done
-    }).authauth(...self.getAuth(), true);
+    }).auth(...self.getAuth(), true);
   });
 };
 
@@ -399,7 +400,7 @@ BitbucketRest.prototype.deleteRepository = function (projKey, repo) {
       }
       console.log('Deleted Repository', data);
       resolve() // done
-    }).authauth(...self.getAuth(), true);
+    }).auth(...self.getAuth(), true);
   })
 }
 
@@ -414,7 +415,7 @@ BitbucketRest.prototype.moveRepository = function(projKey, repo, newProjKey, new
       'project': {
         'key': newProjKey
       }
-    }).authauth(...self.getAuth(), true);
+    }).auth(...self.getAuth(), true);
   });
 };
 
@@ -585,7 +586,7 @@ BitbucketRest.prototype.updatePullRequest = function(id, version, projKey, fromR
       }
       console.error(err, JSON.stringify(data));
       reject();
-    }).json(data).authauth(...self.getAuth(), true);
+    }).json(data).auth(...self.getAuth(), true);
 
   });
 };
@@ -597,7 +598,7 @@ BitbucketRest.prototype.getPullRequests = function(prjKey, repoSlug, urlParams) 
     request.get(self.baseUrl + '/rest/api/1.0/projects/' + prjKey + '/repos/' + repoSlug + '/pull-requests?' + urlParams, function(err, res, data) {
       var prJson = JSON.parse(data);
       resolve(prJson);
-    }).authauth(...self.getAuth(), true);
+    }).auth(...self.getAuth(), true);
 
   });
 };
@@ -610,7 +611,7 @@ BitbucketRest.prototype.getPullRequest = function(prjKey, repoSlug, id, action) 
       //console.log(data);
       var prJson = JSON.parse(data);
       resolve(prJson);
-    }).authauth(...self.getAuth(), true);
+    }).auth(...self.getAuth(), true);
 
   });
 };
@@ -675,7 +676,7 @@ BitbucketRest.prototype.setBranchPermissions = function(prjKey, repoSlug, ref, u
         'users': users,
         'groups': groups
       })
-      .authauth(...self.getAuth(), true);
+      .auth(...self.getAuth(), true);
   });
 };
 
@@ -686,7 +687,7 @@ BitbucketRest.prototype.getBranches = function(prjKey, repoSlug) {
     request.get(self.baseUrl + '/rest/api/1.0/projects/' + prjKey + '/repos/' + repoSlug + '/branches', function(err, res, data) {
       var branches = JSON.parse(data);
       resolve(branches);
-    }).authauth(...self.getAuth(), true);
+    }).auth(...self.getAuth(), true);
   });
 };
 
@@ -743,7 +744,7 @@ BitbucketRest.prototype.setReviewerGroup = function(projKey, repoSlug = '', revi
         reject(err)
     })
     .json(reviewerGroup)
-    .authauth(...self.getAuth(), true)
+    .auth(...self.getAuth(), true)
   )
 }
 
@@ -757,7 +758,7 @@ BitbucketRest.prototype.getReviewerGroups = function(projKey, repoSlug = '' ) {
       else
         reject(err)
     })
-    .authauth(...self.getAuth(), true)
+    .auth(...self.getAuth(), true)
   )
 }
 
@@ -771,7 +772,7 @@ BitbucketRest.prototype.pullRequestSettings = function(projKey, repo, settings) 
       }
       console.error('pull-requests/settings ', err)
       reject()
-    }).json(settings).authauth(...self.getAuth(), true)
+    }).json(settings).auth(...self.getAuth(), true)
   })
 }
 
@@ -785,7 +786,7 @@ BitbucketRest.prototype.getPullRequestSettings = function(projKey, repo) {
       }
       console.error('pull-requests/settings ', err)
       reject()
-    }).authauth(...self.getAuth(), true)
+    }).auth(...self.getAuth(), true)
   })
 }
 
@@ -800,7 +801,7 @@ BitbucketRest.prototype.getCommits = function(projKey, repo) {
       }
       console.error('repo commits', err)
       reject()
-    }).authauth(...self.getAuth(), true)
+    }).auth(...self.getAuth(), true)
   })
 }
 
@@ -818,7 +819,7 @@ BitbucketRest.prototype.addComment = function(projKey, repoSlug, prId, comment) 
       reject()
     }).json({
       'text': comment
-    }).authauth(...self.getAuth(), true)
+    }).auth(...self.getAuth(), true)
   })
 }
 
@@ -840,7 +841,7 @@ BitbucketRest.prototype.addTask = function(anchorId, taskText) {
         },
         'text': taskText
       })
-      .authauth(...self.getAuth(), true)
+      .auth(...self.getAuth(), true)
   })
 }
 
@@ -859,7 +860,7 @@ BitbucketRest.prototype.completeTask = function(taskId) {
         'id': taskId,
         'state': 'RESOLVED'
       })
-      .authauth(...self.getAuth(), true)
+      .auth(...self.getAuth(), true)
   })
 }
 
@@ -875,7 +876,7 @@ BitbucketRest.prototype.setMailServer = function(hostname, port, senderddress) {
       reject(resp.statusCode, err)
     })
     .json({hostname, port, "sender-address": senderddress})
-      .authauth(...self.getAuth(), true)
+      .auth(...self.getAuth(), true)
   })
 }
 
@@ -890,7 +891,7 @@ BitbucketRest.prototype.deleteMailServer = function() {
       }
       reject(resp.statusCode, err)
     })
-      .authauth(...self.getAuth(), true)
+      .auth(...self.getAuth(), true)
   })
 }
 
@@ -905,7 +906,7 @@ BitbucketRest.prototype.getUser = function(username) {
       }
       reject(resp.statusCode, err)
     })
-      .authauth(...self.getAuth(), true)
+      .auth(...self.getAuth(), true)
   })
 }
 
