@@ -518,6 +518,20 @@ BitbucketRest.prototype.createPR = function (projKey, fromRepo, fromRef, toRepo,
   return deferred.promise
 }
 
+BitbucketRest.prototype.getPullRequestActivities = function (projKey, repoSlug, id) {
+  const self = this
+  return new Promise((resolve, reject) => {
+    request.get(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/repos/' + repoSlug + '/pull-requests/' + id + '/activities', function (err, res, data) {
+      if (!err && !data.errors) {
+        resolve(JSON.parse(data))
+        return
+      }
+      console.error(err, JSON.stringify(data))
+      reject()
+    }).auth(...self.getAuth(), true)
+  })
+}
+
 BitbucketRest.prototype.commentPullRequest = function (projKey, repoSlug, id, text, userName, userPassword, severity) {
   var self = this
   userName = userName || 'admin'
