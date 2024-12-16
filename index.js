@@ -107,6 +107,23 @@ BitbucketRest.prototype.createRepository = function (projectKey, repoName, repoZ
   })
 }
 
+BitbucketRest.prototype.updateRepoDefaultBranch = function(projectKey, repoSlug, defaultBranchId) {
+  const self = this
+  return new Promise((resolve, reject) => {
+    request.put(`${self.baseUrl}/rest/api/latest/projects/${projectKey}/repos/${repoSlug}/default-branch`, function (err, res, data) {
+      if(res.statusCode < 400) {
+        resolve()
+        return
+      }
+      reject(res.statusCode, res.statusMessage)
+    })
+    .json({
+      id: defaultBranchId
+    })
+    .auth(...self.getAuth(), true)
+  })
+}
+
 BitbucketRest.prototype.fork = function (projectKey, repoName, forkName, user) {
   var self = this
   user = user || {
