@@ -724,7 +724,12 @@ BitbucketRest.prototype.sendBuildResult = function (latestFromChangeset, key, re
   var self = this
   return new RSVP.Promise(function (resolve, reject) {
     request.post(self.baseUrl + '/rest/build-status/1.0/commits/' + latestFromChangeset, function (err, res, data) {
-      console.log('build result sent', result)
+      console.log('build result sent', result, "response", data)
+      if (data && data.errors) {
+        console.error('sendBuildResult error', data.errors)
+        reject(data.errors)
+        return
+      }
       resolve()
     }).json({
       'state': result,
@@ -744,7 +749,12 @@ BitbucketRest.prototype.sendBambooBuildResult = function (projKey, repoSlug, ref
   var self = this
   return new RSVP.Promise(function (resolve, reject) {
     request.post(self.baseUrl + `/rest/api/1.0/projects/${projKey}/repos/${repoSlug}/commits/${latestFromChangeset}/builds`, function (err, res, data) {
-      console.log('build result sent',ref, state, options)
+      console.log('build result sent',ref, state, options, "response", data)
+      if (data && data.errors) {
+        console.error('sendBambooBuildResult error', data.errors)
+        reject(data.errors)
+        return
+      }
       resolve()
     }).json({
       ...options,
