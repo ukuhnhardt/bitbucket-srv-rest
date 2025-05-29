@@ -433,17 +433,7 @@ BitbucketRest.prototype.moveRepository = function (projKey, repo, newProjKey, ne
 BitbucketRest.prototype.approvePullRequest = function (projKey, repo, prId, userName, pw) {
   var self = this
   pw = pw || userName
-  return new RSVP.Promise(function (resolve, reject) {
-    request.post(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/repos/' + repo + '/pull-requests/' + prId + '/approve', function (err, res, data) {
-      if (!err && !data.errors) {
-        console.log('approvePullRequest: PR', prId, 'approved by', userName)
-        resolve()
-        return
-      }
-      console.log('approve PR error', err, data.errors)
-      reject()
-    }).json({}).auth(userName, pw, true)
-  })
+  return this.updatePullRequestStatus(projKey, repo, prId, 'APPROVED', userName, pw)
 }
 
 BitbucketRest.prototype.updatePullRequestStatus = function (projKey, repo, prId, status, userName, pw) {
@@ -748,18 +738,17 @@ BitbucketRest.prototype.sendBuildResult = function (latestFromChangeset, key, re
 }
 
 // result = SUCCESSFUL or FAILED or INPROGRESS
-BitbucketRest.prototype.sendBambooBuildResult = function (projKey, repoSlug, ref, latestFromChangeset, key, result) {
+BitbucketRest.prototype.sendBambooBuildResult = function (projKey, repoSlug, ref, latestFromChangeset, key, state, options) {
   key = key || 'REPO-MASTER-' + new Date().getTime()
-  result = result || 'SUCCESSFUL'
+  state = state || 'SUCCESSFUL'
   var self = this
-  let data = !!ref ? { ref: ref } : {}
   return new RSVP.Promise(function (resolve, reject) {
     request.post(self.baseUrl + `/rest/api/1.0/projects/${projKey}/repos/${repoSlug}/commits/${latestFromChangeset}/builds`, function (err, res, data) {
-      console.log('build result sent', result)
+      console.log('build result sent',ref, state, options)
       resolve()
     }).json({
-      ...data,
-      'state': result,
+      ...options,
+      'state': state,
       // this is just bla bla
       'key': key,
       'name': key + '-42',
