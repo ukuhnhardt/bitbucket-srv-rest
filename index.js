@@ -145,6 +145,27 @@ BitbucketRest.prototype.fork = function (projectKey, repoName, forkName, user) {
   return deferred.promise
 }
 
+BitbucketRest.prototype.forkToProject = function (projectKey, repoName, toProjKey, forkName, user) {
+  var self = this
+  user = user || {
+    name: 'admin',
+    password: 'admin',
+  }
+  var deferred = Q.defer()
+  console.log(`forking ${projectKey}/${repoName} to' ${toProjKey}/${forkName}`)
+  request.post(self.baseUrl + '/rest/api/1.0/projects/' + projectKey + '/repos/' + repoName, function (err, res, data) {
+    if (!err) deferred.resolve(data)
+    else deferred.reject(err)
+  }).json({
+    'name': forkName,
+    'slug': forkName,
+    'project': {
+      'key': toProjKey,
+    },
+  }).auth(user.name, user.password, true)
+  return deferred.promise
+}
+
 BitbucketRest.prototype.createPrivateFork = function (projectKey, repoName, forkName, user) {
   var self = this
   user = user || {
