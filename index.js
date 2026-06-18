@@ -107,20 +107,20 @@ BitbucketRest.prototype.createRepository = function (projectKey, repoName, repoZ
   })
 }
 
-BitbucketRest.prototype.updateRepoDefaultBranch = function(projectKey, repoSlug, defaultBranchId) {
+BitbucketRest.prototype.updateRepoDefaultBranch = function (projectKey, repoSlug, defaultBranchId) {
   const self = this
   return new Promise((resolve, reject) => {
     request.put(`${self.baseUrl}/rest/api/latest/projects/${projectKey}/repos/${repoSlug}/default-branch`, function (err, res, data) {
-      if(res.statusCode < 400) {
+      if (res.statusCode < 400) {
         resolve()
         return
       }
       reject(res.statusCode, res.statusMessage)
     })
-    .json({
-      id: defaultBranchId
-    })
-    .auth(...self.getAuth(), true)
+      .json({
+        id: defaultBranchId
+      })
+      .auth(...self.getAuth(), true)
   })
 }
 
@@ -491,6 +491,20 @@ BitbucketRest.prototype.needsWorkPullRequest = function (projKey, repo, prId, us
   })
 }
 
+BitbucketRest.prototype.deletePullRequest = function (projKey, repoSlug, prId, asUserOpt, asUserPwdOpt) {
+  asUserOpt = asUserOpt || this.getAuth()[0]
+  asUserPwdOpt = asUserPwdOpt || this.getAuth()[1]
+  var self = this
+  return new Promise((resolve, reject) => {
+    request.del(self.baseUrl + '/rest/api/1.0/projects/' + projKey + '/repos/' + repoSlug + '/pull-requests/' + prId, function (err, resp, data) {
+      if (!err && resp.statusCode < 399) {
+        resolve()
+        return
+      }
+      reject(resp.statusCode)
+    })
+  })
+}
 // this is done with Q promise
 BitbucketRest.prototype.createPR = function (projKey, fromRepo, fromRef, toRepo, toRef, fromProjKeyOpt, asUserOpt, asUserPwdOpt, options) {
   var title = options && options.title ?
@@ -770,7 +784,7 @@ BitbucketRest.prototype.sendBambooBuildResult = function (projKey, repoSlug, ref
   var self = this
   return new RSVP.Promise(function (resolve, reject) {
     request.post(self.baseUrl + `/rest/api/1.0/projects/${projKey}/repos/${repoSlug}/commits/${latestFromChangeset}/builds`, function (err, res, data) {
-      console.log('build result sent',ref, state, options, "response", data)
+      console.log('build result sent', ref, state, options, "response", data)
       if (data && data.errors) {
         console.error('sendBambooBuildResult error', data.errors)
         reject(data.errors)
